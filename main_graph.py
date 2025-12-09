@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
-
+import plotly.express as px
 
 
 
@@ -12,6 +12,31 @@ import plotly.graph_objects as go
 
 
 class BaseGraph:
+
+
+
+
+    def get_main_df(self):
+        df_install_main = pd.read_csv(r'D:\WORK FOLDER\Yaroslav\scripts_python\vizor_task\installs_main.csv')
+        df_install_s_2 = pd.read_csv(r'D:\WORK FOLDER\Yaroslav\scripts_python\vizor_task\installs_s2.csv')
+        df_install_main['install_time'] = pd.to_datetime(df_install_main['install_time'])
+        df_install_main['contributor_1_touch_time'] = pd.to_datetime(df_install_main['contributor_1_touch_time'])
+        df_install_main['contributor_2_touch_time'] = pd.to_datetime(df_install_main['contributor_2_touch_time'])
+        df_install_main['contributor_1_date'] = pd.to_datetime(df_install_main['contributor_1_touch_time'].dt.date)
+        df_install_main['contributor_2_date'] = pd.to_datetime(df_install_main['contributor_2_touch_time'].dt.date)
+        df_install_main['install_date'] = pd.to_datetime(df_install_main['install_time'].dt.date)
+        df_install_main['install_year'] = pd.to_datetime(df_install_main['install_time']).dt.year
+        df_install_main['install_day'] = pd.to_datetime(df_install_main['install_time']).dt.day
+        df_install_s_2['install_date'] = pd.to_datetime(df_install_s_2['install_date'])
+
+        return df_install_main, df_install_s_2
+
+
+
+
+
+
+
     """Сравнительный график источников в зависимости от очереди """
 
     def get_plot_hist(self,df_2022,df_2023,value,title):
@@ -148,17 +173,17 @@ class BaseGraph:
             x=df_compare['install_date'],
             y=df_compare['installs'],
             mode='lines+markers',
-            name='Source 2',
-            hovertemplate='Source 2: %{y}<br>Date: %{x}<extra></extra>'
+            name='installs_s2',
+            hovertemplate='installs_s2: %{y}<br>Date: %{x}<extra></extra>'
         ))
 
-        # Internal
+        # Main
         fig.add_trace(go.Scatter(
             x=df_compare['install_date'],
             y=df_compare['installs_main'],
             mode='lines+markers',
-            name='Internal',
-            hovertemplate='Internal: %{y}<br>Date: %{x}<extra></extra>'
+            name='installs_main',
+            hovertemplate='installs_main: %{y}<br>Date: %{x}<extra></extra>'
         ))
 
         # Gap (разница)
@@ -166,7 +191,7 @@ class BaseGraph:
             x=df_compare['install_date'],
             y=df_compare['gap'],
             mode='lines+markers',
-            name='Gap (Source 2 - Internal)',
+            name='Gap (installs_s2 - installs_main)',
             hovertemplate='Gap: %{y}<br>Date: %{x}<extra></extra>'
         ))
 
@@ -184,5 +209,71 @@ class BaseGraph:
         return fig.show()
 
 
+    def get_resurce_all(self,df_sor_2_cont_1,df_sor_2_cont_2,df_compare):
+        fig = go.Figure()
+
+        # contributor_1
+        fig.add_trace(go.Scatter(
+            x=df_sor_2_cont_1['contributor_1_date'],
+            y=df_sor_2_cont_1['contributor_1'],
+            mode='lines+markers',
+            name='contributor_1',
+            hovertemplate='contributor_1: %{y}<br>Date: %{x}<extra></extra>'
+        ))
+
+        # contributor_2
+        fig.add_trace(go.Scatter(
+            x=df_sor_2_cont_2['contributor_2_date'],
+            y=df_sor_2_cont_2['contributor_2'],
+            mode='lines+markers',
+            name='contributor_2',
+            hovertemplate='contributor_2: %{y}<br>Date: %{x}<extra></extra>'
+        ))
+
+        # Source 2 (общие установки)
+        fig.add_trace(go.Scatter(
+            x=df_compare['install_date'],
+            y=df_compare['installs'],
+            mode='lines+markers',
+            name='installs_s2',
+            hovertemplate='installs_s2: %{y}<br>Date: %{x}<extra></extra>'
+        ))
+
+        # installs_main
+        fig.add_trace(go.Scatter(
+            x=df_compare['install_date'],
+            y=df_compare['installs_main'],
+            mode='lines+markers',
+            name='installs_main',
+            hovertemplate='installs_main: %{y}<br>Date: %{x}<extra></extra>'
+        ))
+
+        # Gap
+        fig.add_trace(go.Scatter(
+            x=df_compare['install_date'],
+            y=df_compare['gap'],
+            mode='lines+markers',
+            name='Gap (Source 2 - installs_main)',
+            hovertemplate='Gap: %{y}<br>Date: %{x}<extra></extra>'
+        ))
+
+        # Настройки графика
+        fig.update_layout(
+            title='Installs over time: Contributors vs Source 2 & Installs_main',
+            xaxis_title='Install Date',
+            yaxis_title='Installs',
+            xaxis=dict(tickangle=-30),
+            width=2000,
+            height=600,
+            hovermode='x unified'  # показывает все значения при наведении на одну дату
+        )
+
+        return fig.show()
+
+
+
+    def get_heat_map(self,df_compare):
+        fig = px.imshow(df_compare.drop(columns='Unnamed: 0').corr(), text_auto=True)
+        return fig.show()
 
 
