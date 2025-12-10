@@ -287,7 +287,7 @@ class BaseGraph:
 
 
     def get_heat_map(self,df_compare):
-        fig = px.imshow(df_compare.drop(columns='Unnamed: 0').corr(), text_auto=True)
+        fig = px.imshow(df_compare.corr(), text_auto=True)
         return fig.show()
 
 
